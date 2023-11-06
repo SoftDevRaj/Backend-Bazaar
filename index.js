@@ -1,38 +1,45 @@
-// Load .env file to process so we can access environment variables
+// index.js
+
+// Load environment variables from .env file
 require('dotenv').config();
 
-// Import the express package which is used to create our HTTP server
+// Import necessary Node.js modules
 const express = require('express');
+const sequelize = require('./config/database'); // assuming you have a sequelize instance exported from this file
 
-// Import Sequelize configured instance to use for database operations
-const sequelize = require('./config/database'); // Adjust the path as necessary for your project
-
-// Create an instance of express which is our server
+// Initialize express app
 const app = express();
 
-// Define a port number from the environment variable or default to 3000
+// Set the port for the server to listen on
 const PORT = process.env.PORT || 3000;
 
-// Setup a response for the root route to check if our server is running
-app.get('/', (req, res) => {
-  // Send a response when this route is accessed
-  res.send('Welcome to Backend Bazaar!');
-});
+// Express middleware to parse incoming requests with JSON payloads
+app.use(express.json());
 
-// Connect to our database using Sequelize
+// Database authentication check and server start
 sequelize.authenticate()
   .then(() => {
-    // If connection is successful, log the success message
-    console.log('Connection has been established successfully.');
-
-    // Start the server and listen on the defined PORT
-    app.listen(PORT, () => {
-      // Log the message to the console after the server starts listening
-      console.log(`Server running on port ${PORT}`);
-    });
+    console.log('Database connected!'); // Log successful database connection
+    // Sync Sequelize models to the database tables
+    sequelize.sync({ force: false }) // 'force: true' would drop & recreate tables
+      .then(() => {
+        console.log('Database synced!'); // Log successful syncing of models to database tables
+        // Start listening on the specified port for incoming requests
+        app.listen(PORT, () => {
+          console.log(`Server is listening on port ${PORT}`); // Log that the server has started
+        });
+      })
+      .catch((syncError) => {
+        console.error('Error during model sync:', syncError); // Log any errors during model syncing
+      });
   })
-  .catch(err => {
-    // If there is any error connecting to the database, log the error
-    console.error('Unable to connect to the database:', err);
+  .catch((authError) => {
+    console.error('Unable to connect to the database:', authError); // Log any authentication errors
   });
+
+// Define a simple route to check if the server is running
+app.get('/', (req, res) => {
+  res.send('Backend Bazaar is running!'); // Respond with a confirmation message
+});
+
 
