@@ -11,7 +11,7 @@ const sequelize = require('./config/database'); // Ensure the path is correct
 app.use(express.json());
 
 // Set up your category routes
-const categoryRoutes = require('./routes/categoryRoutes'); // adjust the path if necessary
+const categoryRoutes = require('./Routes/categoryRoutes'); // adjust the path if necessary
 app.use('/api/categories', categoryRoutes);
 
 // Authenticate with the database
